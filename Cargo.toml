@@ -1,0 +1,14 @@
+[package]
+name = "fileinfo"
+version = "0.1.0"
+edition = "2024"
+repository = "https://github.com/Domenicopezzullo/fileinfo"
+
+
+[dependencies]
+chrono = "0.4.40"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
