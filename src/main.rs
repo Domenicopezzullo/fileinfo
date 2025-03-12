@@ -1,4 +1,4 @@
-use std::{env, fs::File, os::unix::fs::MetadataExt, process};
+use std::{env, ffi::OsString, fs::File, os::unix::fs::MetadataExt, path::Path, process};
 use chrono::{DateTime, Local};
 
 fn main() {
@@ -11,9 +11,9 @@ fn main() {
     };
 
     match process(&file_path) {
-        Ok((size, last_modified, filetype)) => {
+        Ok((size, last_modified, filetype, is_sym, file_name)) => {
             let (size_value, size_suffix) = format_size(size);
-            println!("\nType: {}\nSize: {} {}\nLast Modified: {}", filetype, size_value, size_suffix, last_modified);
+            println!("\n\nName: {}\nType: {}\nSize: {} {}\nLast Modified: {}\nIs a symlink: {}", &file_name.to_string_lossy(), &filetype, &size_value, &size_suffix, &last_modified, &is_sym);
         }
         Err(e) => {
             eprintln!("ERROR: {}", e);
@@ -22,9 +22,18 @@ fn main() {
     }
 }
 
-fn process(file_path: &str) -> Result<(u64, String, String), String> {
+fn process(file_path: &str) -> Result<(u64, String, String, bool, OsString), String> {
     let file = File::open(file_path).map_err(|err| format!("Failed to open file '{}': {}", file_path, err))?;
     let metadata = file.metadata().map_err(|err| format!("Failed to get metadata for file '{}': {}", file_path, err))?;
+    let file_name = Path::new(file_path).file_name().expect("File path could not be resolved!");
+
+    let mut is_sym = false;
+
+
+    if metadata.is_symlink() {
+        is_sym = true;
+    } 
+
 
     let size = metadata.size();
     let last_modified = metadata.modified().map_err(|err| format!("Failed to get last modified time for file '{}': {}", file_path, err))?;
@@ -33,7 +42,7 @@ fn process(file_path: &str) -> Result<(u64, String, String), String> {
 
     let filetype = if metadata.is_dir() { "Folder" } else { "File" }.to_string();
 
-    Ok((size, formatted_time, filetype))
+    Ok((size, formatted_time, filetype, is_sym, file_name.to_owned()))
 }
 
 fn format_size(size: u64) -> (f64, &'static str) {
