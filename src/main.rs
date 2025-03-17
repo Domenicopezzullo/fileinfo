@@ -1,5 +1,3 @@
-// Absolute  cinema
-
 use std::{env, ffi::OsString, fs::File, path::Path, process};
 use chrono::{DateTime, Local};
 
