@@ -1,5 +1,11 @@
-use std::{env, ffi::OsString, fs::File, os::unix::fs::MetadataExt, path::Path, process};
+use std::{env, ffi::OsString, fs::File, path::Path, process};
 use chrono::{DateTime, Local};
+
+#[cfg(windows)]
+use std::os::windows::fs::MetadataExt;
+#[cfg(unix)]
+use std::os::unix::fs::MetadataExt;
+
 
 fn main() {
     let file_path = match env::args().nth(1) {
